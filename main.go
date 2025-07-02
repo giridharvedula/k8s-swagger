@@ -74,6 +74,6 @@ func main() {
 	if port == "" {
 		port = "8000"
 	}
-	fmt.Println("🚀  proxy listening on", port)
+	fmt.Println("proxy listening on", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
