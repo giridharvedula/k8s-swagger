@@ -67,3 +67,13 @@ func getTLSConfig(caPath string) *tls.Config {
 	pool.AppendCertsFromPEM(data)
 	return &tls.Config{RootCAs: pool}
 }
+
+func main() {
+	http.HandleFunc("/openapi.json", openapiHandler)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+	fmt.Println("🚀  proxy listening on", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
