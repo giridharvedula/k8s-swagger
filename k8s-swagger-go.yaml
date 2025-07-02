@@ -1,0 +1,70 @@
+# ServiceAccount + minimal RBAC
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-proxy
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: openapi-reader
+rules:
+  - nonResourceURLs: ["/openapi*", "/version"]
+    verbs: ["get]
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openapi-reader-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: openapi-reader
+subjects:
+  - kind: ServiceAccount
+    name: api-proxy
+    namespace: default
+---
+
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-proxy
+spec:
+  replicas: 1
+selector:
+  matchLabels: {app: api-proxy}
+template:
+  metadata:
+    labels: {app: api-proxy}
+  spec:
+    serviceAccountName: api-proxy
+    containers:
+      - name: api-proxy
+        image: api-proxy:local # Replace with your image name
+        imagePullPolicy: IfNotPresent
+        ports: [{containerPort: 8000}]
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+---
+
+# NodePort service (browser hits this)
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-proxy
+spec:
+  type: NodePort
+  selector: {app: api-proxy}
+  ports:
+    - port: 80
+      targetPort: 8000
+      nodePort: 32080
