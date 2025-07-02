@@ -57,3 +57,13 @@ func addCORS(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 }
+
+func getTLSConfig(caPath string) *tls.Config {
+	pool := x509.NewCertPool()
+	data, err := os.ReadFile(caPath)
+	if err != nil {
+		log.Fatalf("failed to read CA: %v", err)
+	}
+	pool.AppendCertsFromPEM(data)
+	return &tls.Config{RootCAs: pool}
+}
